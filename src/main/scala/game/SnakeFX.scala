@@ -24,19 +24,10 @@ object SnakeFX extends JFXApp3 {
 
   def gameLoop(
       update: () => Unit
-  )(using executor: ExecutorService): ZIO[Any, Nothing, Unit] =
-    ZIO
-      .async[Any, Nothing, Unit] { cb =>
-        cb(ZIO.succeed {
-          executor.execute { () =>
-            update()
-            Thread.sleep(66)
-          }
-        })
-      }
-      .onDone(e => ZIO.unit, _ => gameLoop(update))
+  )(using executor: Executor): UIO[Unit] =
+    (ZIO.succeed(update()) *> ZIO.sleep(66.millis)).onExecutor(executor).onDone(e => ZIO.unit, _ => gameLoop(update))
 
-  def gameLoop_v2(update: () => Unit): ZIO[Any, Nothing, Unit] =
+  def gameLoop_v2(update: () => Unit): UIO[Unit] =
     (ZIO.sleep(66.millis) *> ZIO.succeed(update())).onDone(e => ZIO.unit, _ => gameLoop_v2(update))
 
   case class State(snake: Snake, food: Food) {
@@ -126,9 +117,10 @@ object SnakeFX extends JFXApp3 {
     //     gameLoop(() => frame.update(frame.value + 1))
     //   )
     // }
+    given executor: Executor = Executor.fromJavaExecutor(Executors.newFixedThreadPool(1))
     Unsafe.unsafe {
       runtime.unsafe.run(
-        gameLoop_v2(() => frame.update(frame.value + 1))
+        gameLoop(() => frame.update(frame.value + 1))
       )
     }
   }
