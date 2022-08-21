@@ -1,6 +1,6 @@
 ## sbt project compiled with Scala 3
 
-Snake Game inspired by RockTheJVM's blog post, but experimenting with ZIO as an alternative tu Future.
+Snake Game inspired by RockTheJVM's [blog post](https://blog.rockthejvm.com/snake/), but experimenting with ZIO as an alternative to Future.
 
 ### Usage
 

@@ -25,10 +25,12 @@ object SnakeFX extends JFXApp3 {
   def gameLoop(
       update: () => Unit
   )(using executor: Executor): UIO[Unit] =
-    (ZIO.succeed(update()) *> ZIO.sleep(66.millis)).onExecutor(executor).onDone(e => ZIO.unit, _ => gameLoop(update))
+    (ZIO.succeed(update()) *> ZIO.sleep(80.millis))
+      .onExecutor(executor)
+      .onDone(_ => gameLoop(update), _ => gameLoop(update)) // TODO add error handling?
 
   def gameLoop_v2(update: () => Unit): UIO[Unit] =
-    (ZIO.sleep(66.millis) *> ZIO.succeed(update())).onDone(e => ZIO.unit, _ => gameLoop_v2(update))
+    (ZIO.sleep(80.millis) *> ZIO.succeed(update())).onDone(e => ZIO.unit, _ => gameLoop_v2(update))
 
   case class State(snake: Snake, food: Food) {
     def newState(dir: Int): State = {
@@ -66,11 +68,6 @@ object SnakeFX extends JFXApp3 {
 
   def randomFood(): (Double, Double) =
     (scala.util.Random.nextInt(24) * 25, scala.util.Random.nextInt(24) * 25)
-  // def randomFood(): ZIO[Any, Nothing, (Double, Double)] =
-  //   for {
-  //     x <- Random.nextIntBounded(24).map(_.toDouble * 25)
-  //     y <- Random.nextIntBounded(24).map(_.toDouble * 25)
-  //   } yield (x, y)
 
   def square(xr: Double, yr: Double, color: Color): Rectangle = new Rectangle {
     x = xr
